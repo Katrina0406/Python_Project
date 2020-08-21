@@ -12,7 +12,7 @@ def intro():
     statement = '''Welcome to Driving a Train! This game starts between
     two players, each initially with 27 cards in hand. Each player has to 
     play with his/her top card for each round. If someone’s card number is 
-    the same as a card shown before, he/she can take all the cards start from
+    the same as that of a card shown before, he/she can take all the cards start from
     that card. The game continues until one player has no card in hand.'''
 
     print(statement)
@@ -59,6 +59,7 @@ class Deck:
         random.shuffle(self.deck)
 
     def deal_cards(self):
+        # evenly deal out the deck
         first_player_cards = self.deck[:27]
         second_player_cards = self.deck[27:]
         return (first_player_cards, second_player_cards)
@@ -71,8 +72,9 @@ class Hand:
 
     # each player has two cardsets
     # one for current round
-    # the other save cards assigned to the player due to duplications
+    # the other saves cards assigned to the player due to duplications on playboard
     # the save set isn't used until there is no card in the current set
+    
     def __init__(self):
         self.cards = [] # current round
         self.save_cards = [] # saved for next round
@@ -88,14 +90,6 @@ class Hand:
 
     def add_save_cards(self, cardset):
         self.save_cards += cardset
-    
-    # method for deleting save set after it replaces the current set
-    def delete_save_cards(self):
-        self.save_cards = []
-    
-    # make the card set random again
-    def shuffle(self, cardset):
-        random.shuffle(cardset)
 
     # methods for the program to get two card sets' info
     def get_cards(self):
@@ -106,6 +100,13 @@ class Hand:
 
     def get_save_cards(self):
         return self.save_cards
+    
+    # when the current card set has no cards
+    # replace it with the save set and empty the save set
+    def saveset_replace(self):
+        self.cards = self.save_cards
+        self.save_cards = []
+        random.shuffle(self.cards)
 
     # get the amount of cards in each set and the total amount
     def total_cards(self):
@@ -136,17 +137,18 @@ class Playboard:
         add_cardset = []
 
         if new_card.get_rank() in self.playboard_rank:
-            # duplicative card: card num equals to this card
+            
+            # duplicative card: playboard has a card's num equals to the current card
             # get the index of the duplicative card on the playboard
             index = self.playboard_rank.index(new_card.get_rank())
             
             # assign all cards start from the duplicative card to the set
             add_cardset = self.playboard[index:]
 
-            # get the amount of cards added to 
+            # get the amount of cards added to the player's save set
             num_add = len(add_cardset)
 
-            # update playboard & playboard rank
+            # update playboard & playboard rank(delete cards assigned)
             self.playboard = self.playboard[:index]
             self.playboard_rank = self.playboard_rank[:index]
 
@@ -154,7 +156,7 @@ class Playboard:
         already on playboard, so the player is assigned %d cards.''' % (new_card.show_card(),num_add))
 
         else:
-            print("The card number has no duplications.")
+            print("The card number has no duplicates.")
         return add_cardset
 
 
@@ -164,7 +166,7 @@ def main():
 
     # starting the game
     intro()
-    operation = input() # enter s to start game
+    operation = input() # enter 's' to start game
     if operation != 's':
         print('Invalid input, please enter s to start.')
         return
@@ -182,11 +184,13 @@ def main():
 
     # deal cards to 2 players
     cardsets = deck.deal_cards()
+    
+    # real_player
     real_player.add_cards(cardsets[0])
-    # retrieve cardset for real player
     real_card = real_player.get_cards()
+    
+    # robot_player
     robot_player.add_cards(cardsets[1])
-    # retrieve cardset for robot player
     robot_card = robot_player.get_cards()
 
     # start playing
@@ -207,10 +211,11 @@ def main():
             cur_card = real_player.play()
             print("You play a card:", cur_card.show_card())
 
-            # check if this card num has duplicate on playboard
+            # check if this card num has a duplicate on playboard
             # if no duplicates the addset will be zero
             add_cardset1 = playboard.assign_cards(cur_card)
-            real_player.add_save_cards(add_cardset1)
+            if add_cardset1 != None:
+                real_player.add_save_cards(add_cardset1)
 
             # update real_player's info on playboard
             playboard.update_playboard(cur_card)
@@ -220,10 +225,7 @@ def main():
 
             # for replacing the empty card set with the save set
             if real_player.get_num_cards() == 0:
-                real_saveset = real_player.get_save_cards()
-                real_player.add_cards(real_saveset)
-                real_player.delete_save_cards()
-                real_player.shuffle(real_card)
+                real_player.saveset_replace()
 
             ## Robot Player
             print('')
@@ -234,7 +236,8 @@ def main():
             # check if this card num has duplicate on playboard
             # if no duplicates the addset will be zero
             add_cardset2 = playboard.assign_cards(auto_card)
-            robot_player.add_save_cards(add_cardset2)
+            if add_cardset2 != None:
+                robot_player.add_save_cards(add_cardset2)
 
             # update robot_player's info on playboard
             playboard.update_playboard(auto_card)
@@ -244,13 +247,10 @@ def main():
 
             # for replacing the empty card set with the save set
             if robot_player.get_num_cards() == 0:
-                robot_saveset = robot_player.get_save_cards()
-                robot_player.add_cards(robot_saveset)
-                robot_player.delete_save_cards()
-                robot_player.shuffle(robot_card)
+                robot_player.saveset_replace()
 
             print('')
-            print("------------New Round------------")
+            print("------------New Round------------\n")
             print("Press p to play the next card or q to quit.")
 
         else:
