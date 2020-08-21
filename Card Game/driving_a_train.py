@@ -157,6 +157,8 @@ class Playboard:
 
         else:
             print("The card number has no duplicates.")
+
+
         return add_cardset
 
 
@@ -195,7 +197,7 @@ def main():
 
     # start playing
     print("Press p to play a card or q to quit.")
-    while(real_card != None and robot_card != None):
+    while(real_card and robot_card):
 
         playing = input()
         
@@ -214,7 +216,7 @@ def main():
             # check if this card num has a duplicate on playboard
             # if no duplicates the addset will be zero
             add_cardset1 = playboard.assign_cards(cur_card)
-            if add_cardset1 != None:
+            if (add_cardset1):
                 real_player.add_save_cards(add_cardset1)
 
             # update real_player's info on playboard
@@ -226,6 +228,9 @@ def main():
             # for replacing the empty card set with the save set
             if real_player.get_num_cards() == 0:
                 real_player.saveset_replace()
+                real_card = real_player.get_cards()
+
+            #----------------------------------------------#
 
             ## Robot Player
             print('')
@@ -236,7 +241,7 @@ def main():
             # check if this card num has duplicate on playboard
             # if no duplicates the addset will be zero
             add_cardset2 = playboard.assign_cards(auto_card)
-            if add_cardset2 != None:
+            if (add_cardset2):
                 robot_player.add_save_cards(add_cardset2)
 
             # update robot_player's info on playboard
@@ -248,18 +253,18 @@ def main():
             # for replacing the empty card set with the save set
             if robot_player.get_num_cards() == 0:
                 robot_player.saveset_replace()
+                robot_card = robot_player.get_cards()
 
-            print('')
-            print("------------New Round------------\n")
+            print("\n------------New Round------------\n")
             print("Press p to play the next card or q to quit.")
 
         else:
             print("Invalid input, please enter p to continue playing or q to quit.")
             playing = input()
     
-    if real_card == None and robot_card != None:
+    if real_card == True and robot_card == False:
         print("You lose! You have no card left.")
-    elif real_card != None and robot_card == None: 
+    elif real_card == False and robot_card == True: 
         print("You win! The robot has no card left.")  
     else:
         print("Tied! Both of you have no card left.")
