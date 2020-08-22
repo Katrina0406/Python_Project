@@ -1,6 +1,7 @@
 '''
 - a famous card game -- driving a train;
 - two players, the one with no card in hand loses;
+- interactive game, but can change to automatic playing
 '''
 
 # random lib for shuffling cards
@@ -164,7 +165,7 @@ class Playboard:
 
 def main():
 
-    global playing
+    global playing, turn
 
     # starting the game
     intro()
@@ -200,71 +201,85 @@ def main():
     while(real_card and robot_card):
 
         playing = input()
-        
+        # default turn
+        turn = 'real_player'
+
         if playing == 'q':
             print("Thanks for playing!")
             exit()
 
         if playing == 'p':
 
-            ## Real Player(You!)
-            print('')
-            # pop the last card in the card set
-            cur_card = real_player.play()
-            print("You play a card:", cur_card.show_card())
+            ## Real Player
+            while(turn == 'real_player'):
 
-            # check if this card num has a duplicate on playboard
-            # if no duplicates the addset will be zero
-            add_cardset1 = playboard.assign_cards(cur_card)
-            if (add_cardset1):
-                real_player.add_save_cards(add_cardset1)
+                # switch turn info
+                turn = 'robot_player'
 
-            # update real_player's info on playboard
-            playboard.update_playboard(cur_card)
+                print('')
+                # pop the last card in the card set
+                cur_card = real_player.play()
+                print("You play a card:", cur_card.show_card())
 
-            # show total cards left for real_player & specific num for each set
-            print(real_player.total_cards())
+                # check if this card num has a duplicate on playboard
+                # if no duplicates the addset will be zero
+                add_cardset1 = playboard.assign_cards(cur_card)
+                if (add_cardset1):
+                    real_player.add_save_cards(add_cardset1)
+                    turn = 'real_player'
 
-            # for replacing the empty card set with the save set
-            if real_player.get_num_cards() == 0:
-                real_player.saveset_replace()
-                real_card = real_player.get_cards()
+                # update real_player's info on playboard
+                playboard.update_playboard(cur_card)
+
+                # show total cards left for real_player & specific num for each set
+                print(real_player.total_cards())
+
+                # for replacing the empty card set with the save set
+                if real_player.get_num_cards() == 0:
+                    real_player.saveset_replace()
+                    real_card = real_player.get_cards()
 
             #----------------------------------------------#
 
             ## Robot Player
-            print('')
-            # pop the last card in the card set
-            auto_card = robot_player.play()
-            print("The robot plays a card:", auto_card.show_card())
+            while(turn == 'robot_player'):
 
-            # check if this card num has duplicate on playboard
-            # if no duplicates the addset will be zero
-            add_cardset2 = playboard.assign_cards(auto_card)
-            if (add_cardset2):
-                robot_player.add_save_cards(add_cardset2)
+                # switch turn into
+                turn = 'real_player'
 
-            # update robot_player's info on playboard
-            playboard.update_playboard(auto_card)
+                print('')
+                # pop the last card in the card set
+                auto_card = robot_player.play()
+                print("The robot plays a card:", auto_card.show_card())
 
-            # show total cards left for robot_player & specific num for each set
-            print(robot_player.total_cards())
+                # check if this card num has duplicate on playboard
+                # if no duplicates the addset will be zero
+                add_cardset2 = playboard.assign_cards(auto_card)
+                if (add_cardset2):
+                    robot_player.add_save_cards(add_cardset2)
+                    turn = 'robot_player'
 
-            # for replacing the empty card set with the save set
-            if robot_player.get_num_cards() == 0:
-                robot_player.saveset_replace()
-                robot_card = robot_player.get_cards()
+                # update robot_player's info on playboard
+                playboard.update_playboard(auto_card)
 
-            print("\n------------New Round------------\n")
-            print("Press p to play the next card or q to quit.")
+                # show total cards left for robot_player & specific num for each set
+                print(robot_player.total_cards())
+
+                # for replacing the empty card set with the save set
+                if robot_player.get_num_cards() == 0:
+                    robot_player.saveset_replace()
+                    robot_card = robot_player.get_cards()
+
+                print("\n------------New Round------------\n")
+                print("Press p to play the next card or q to quit.")
 
         else:
             print("Invalid input, please enter p to continue playing or q to quit.")
             playing = input()
     
-    if real_card == True and robot_card == False:
+    if len(real_card) == 0 and len(robot_card) != 0:
         print("You lose! You have no card left.")
-    elif real_card == False and robot_card == True: 
+    elif len(real_card) != 0 and len(robot_card) == 0: 
         print("You win! The robot has no card left.")  
     else:
         print("Tied! Both of you have no card left.")
